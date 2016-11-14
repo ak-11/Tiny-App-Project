@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+<body>
+  <% include ./partials/_headers %>
+  <% include ./partials/_background %>
+  <table border="1">
+    <tr>
+      <th>Long URL</th>
+      <th>Short URL</th>
+      <th> Edit</th>
+      <th>Delete</th>
+    </tr>
+      <% for (let shortURL in urls)  { %>
+      <tr>
+        <td><%= urls[shortURL] %></td>
+        <td>5<%= shortURL %></td>
+        <td>
+          <a href="http://localhost:8080/urls/<%= shortURL %>">Edit</a>
+        </td>
+        <td>
+          <form action="/urls/<%= shortURL %>/delete" method="POST">
+                            <input type="submit" value="DELETE"></form>
+        </td>
+      </tr>
+      <% }; %>
+      <% if (Object.keys(urls).length === 0) { %>
+      <tr>
+        <td colspan="4">You Have No URL's</td>
+      </tr>
+        <% } %>
+  <% if (email) { %>
+  <div><h3><i><a href="http://localhost:8080/urls/new"><b>Create a New Short Link</b></a></i></h3></div>
+  <% } %>
+</body>
+</html>

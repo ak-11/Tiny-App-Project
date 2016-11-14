@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+<body>
+  <% include ./partials/_headers %>
+  <% include ./partials/_background %>
+  <table border="1">
+    <tr>
+      <th>Long URL</th>
+      <th>Short URL</th>
+      <th> Edit</th>
+      <th>Delete</th>
+    </tr>
+      <% for (let shortURL in urls)  { %>
+      <tr>
+        <td><%= urls[shortURL] %></td>
+        <td>5<%= shortURL %></td>
+        <td>
+          <form action="http://localhost:8080/urls/<%= shortURL %>" method="POST">
+                            <input type="submit" value="EDIT"></form>
+        </td>
+        <td>
+          <form action="/urls/<%= shortURL %>/delete" method="POST">
+                            <input type="submit" value="DELETE"></form>
+        </td>
+      </tr>
+      <% } %>
+  </table>
+  <form action="/urls/shortURL/delete" method="POST" style="margin:100px">
+  <label for="shortURL"> Delete Short URL: </label>
+  <input id="shortURL" type="text" name="shortURL" placeholder="http://" style="width: 300px">
+  <input type="submit" value="Submit">
+  </form>
+
+</body>
+</html>
+
