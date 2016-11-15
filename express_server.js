@@ -82,7 +82,8 @@ const checkIfShortUrlExists = function (shortURL) {
 const checkIfUrlIsUsers = function (userId, shortURL) {
   let isThisTheirs = false;
   for (let userId in userDatabase) {
-    if (userDatabase[userID].urls.hasOwnProperty(shortURL));
+    userDatabase[userId].urls[shortURL];
+    console.log(userDatabase[userId].urls[shortURL]);
     isThisTheirs = true;
   }
   return isThisTheirs;
@@ -96,8 +97,8 @@ const urlDatabase = {
 };
 
 const userDatabase = {
-    "ak1234" : { id: "ak1234", email: "andrew@example.com", password: "testing", urls: {"b2xVn2": "http://www.lighthouselabs.ca"}},
-    "thor69" : { id: "thor69", email: "thor@asgard.come", password: "odin", urls: {"9sm5xK": "http://www.google.com"}}
+    "ak1234" : { id: "ak1234", email: "andrew@example.com", password: "$2a$10$xh8M3i1Y0fomlgD5dvdX6OdwdOVNDH8SbmmxEfDeKuXMjy1xE0eia", urls: {"b2xVn2" : "http://www.lighthouselabs.ca"}},
+    "thor69" : { id: "thor69", email: "thor@asgard.come", password: "odin", urls: {"9sm5xK" : "http://www.google.com"}}
 };
 
 app.listen(PORT, () => {
@@ -111,11 +112,6 @@ app.get("/", (req, res) => {
   } else {
     res.redirect("/login")
   }
-});
-
-app.post("/logout", (req, res) => {
-  req.session.user_id = null;
-  res.redirect("/");
 });
 
 app.get("/urls", (req, res) => {
@@ -179,7 +175,6 @@ app.post("/register", (req, res) =>  {
   const randomID = generateRandomString();
   userDatabase[randomID] = { id: randomID, email: email, password: password, urls: {} };
   req.session.user_id = randomID;
-  console.log(email, password, randomID);
   res.redirect("/urls");
 });
 
@@ -196,17 +191,23 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-app.post("/urls/shortURL/delete", (req, res) =>  {
-  const inputVal = req.body.shortURL;
-  delete(urlDatabase[inputVal]);
-  res.redirect("/urls")
-});
-
-app.post("/urls/create", (req, res) => {
+app.post("/urls/new", (req, res) => {
   const shortURL = generateRandomString();
-  userDatabase[req.session.user_id]['urls'][shortURL] = req.body.longURL;
+  userDatabase[req.session.user_id].urls[shortURL] = req.body.longURL;
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
+});
+
+app.post("/logout", (req, res) => {
+  req.session.user_id = null;
+  res.redirect("/");
+});
+
+app.post("/urls/:shortURL/delete", (req, res) =>  {
+  const shortURL = req.params.shortURL;
+  delete(urlDatabase[shortURL]);
+  delete(userDatabase[req.session.user_id].urls[shortURL]);
+  res.redirect("/urls")
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -218,12 +219,12 @@ app.get("/urls/:id", (req, res) => {
     email: req.session.user_id
   };
   if (checkIfShortUrlExists(shortURL)) {
-    res.status(404).send("This Short URL does not exist")
+    res.status(404).send("This Short URL does not exist");
   } else if (!userId) {
     const str = "login";
     const strLink = str.link("http://localhost:8080/login");
     res.status(401).send(`You're not logged in! ${strLink} here!`);
-  } else if (checkIfUrlIsUsers(userId, shortURL)) {
+  } else if (!checkIfUrlIsUsers(userId, shortURL)) {
     res.status(403).send("This doesn't belong to you!");
   } else {
     res.status(200);
@@ -238,15 +239,18 @@ app.post("/urls/:shortID/delete", (req, res) =>  {
 });
 
 app.post("/urls/:id", (req, res)  =>  {
+  const userId = req.session.user_id;
+  const shortURL = req.params.id;
   const newURL = req.body.newURL;
   urlDatabase[req.params.id] = newURL;
+  userDatabase[userId].urls[shortURL] = newURL;
   if (checkIfShortUrlExists(shortURL)) {
     res.status(404).send("This Short URL does not exist")
   } else if (!userId) {
     const str = "login";
     const strLink = str.link("http://localhost:8080/login");
     res.status(401).send(`You're not logged in! ${strLink} here!`);
-  } else if (checkIfUrlIsUsers(userId, shortURL)) {
+  } else if (!checkIfUrlIsUsers(userId, shortURL)) {
     res.status(403).send("This doesn't belong to you!");
   } else {
   res.redirect(`/urls/${req.params.id}`)
